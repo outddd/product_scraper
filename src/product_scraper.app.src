@@ -1,0 +1,10 @@
+{application, 'product_scraper', [
+	{description, "Test project for scrapping products"},
+	{vsn, "0.1.0"},
+	{modules, ['product_scraper_app','product_scraper_sup']},
+	{registered, [product_scraper_sup]},
+	{applications, [kernel,stdlib,cowboy,gun,jiffy]},
+	{optional_applications, []},
+	{mod, {'product_scraper_app', []}},
+	{env, []}
+]}.
