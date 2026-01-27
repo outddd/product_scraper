@@ -8,5 +8,14 @@ start_link() ->
 	supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
-	Procs = [],
-	{ok, {{one_for_one, 1, 5}, Procs}}.
+	Procs = [
+		#{id => storage,
+			start => {product_scraper_storage, start_link, []},
+			restart => permanent,
+			type => worker},
+		#{id => worker,
+			start => {product_scraper_worker, start_link, []},
+			restart => permanent,
+			type => worker}
+	],
+	{ok, {#{strategy => one_for_one, intensity => 5, period => 10}, Procs}}.

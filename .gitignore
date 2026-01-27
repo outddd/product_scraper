@@ -2,9 +2,12 @@
 *.o
 *.beam
 *.plt
+*.d
 erl_crash.dump
 .concrete/DEV_MODE
 .erlang.mk/
+.idea/
+Mnesia.*
 
 # rebar 2.x
 .rebar

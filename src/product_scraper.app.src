@@ -2,8 +2,8 @@
 	{description, "Test project for scrapping products"},
 	{vsn, "0.1.0"},
 	{modules, ['product_scraper_app','product_scraper_sup']},
-	{registered, [product_scraper_sup]},
-	{applications, [kernel,stdlib,cowboy,gun,jiffy]},
+	{registered, [product_scraper_sup, product_scraper_storage, product_scraper_worker]},
+	{applications, [kernel,stdlib,inets,ssl,cowboy,jiffy]},
 	{optional_applications, []},
 	{mod, {'product_scraper_app', []}},
 	{env, []}
