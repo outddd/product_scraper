@@ -7,6 +7,10 @@
 -include("product_scraper.hrl").
 -include_lib("kernel/include/logger.hrl").
 
+-ifdef(TEST).
+-export([parse_date/1, parse_id/1, parse_interval/1, group_by_time/1, format_time/1]).
+-endif.
+
 -define(RESPONSE_HEADERS, #{<<"content-type">> => <<"application/json">>}).
 
 init(Req0, State) ->
