@@ -24,6 +24,7 @@ handle(<<"GET">>, <<"/assembled-products">>, Req) ->
   QS = cowboy_req:parse_qs(Req),
   case parse_filters(QS) of
     {ok, StartDate, EndDate, Id} ->
+      %% we should limit that with pagination, but there is no restriction in task
       Products = product_scraper_storage:get_products(StartDate, EndDate, Id),
       Reply = group_by_time(Products),
       cowboy_req:reply(200, ?RESPONSE_HEADERS, jiffy:encode(Reply), Req);
@@ -99,11 +100,19 @@ parse_interval(Bin) ->
   end.
 
 group_by_time(Products) ->
-  lists:foldl(fun(#product{id = Id, price = Price, scraped_at = ScrapedAt}, Acc) ->
+  %% we need return collected data grouped by collection time
+  %%  {
+  %%    "2025-10-10T18:10:50.622Z":[{"id":"1","price":199.99},{"id":"2","price":11.61}],
+  %%    "2025-10-10T18:11:20.100Z":[{"id":"1","price":199.99},{"id":"2","price":11.61}]
+  %%  }
+  %% and need ascending order for output
+  Grouped = lists:foldl(fun(#product{id = Id, price = Price, scraped_at = ScrapedAt}, Acc) ->
     TimeKey = format_time(ScrapedAt),
     Item = {[{id, integer_to_binary(Id)}, {price, Price}]},
     maps:update_with(TimeKey, fun(List) -> [Item | List] end, [Item], Acc)
-  end, #{}, Products).
+  end, #{}, Products),
+  Sorted = lists:sort(maps:to_list(Grouped)),
+  {Sorted}.
 
 format_time(Timestamp) ->
   Seconds = Timestamp div 1000,

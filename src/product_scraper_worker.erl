@@ -61,7 +61,9 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal
 
 cancel_timer(undefined) -> ok;
-cancel_timer(Ref) -> erlang:cancel_timer(Ref).
+cancel_timer(Ref) ->
+  _ = erlang:cancel_timer(Ref),
+  ok.
 
 do_scrape(Url) ->
   ?LOG_INFO("Scraping ~s", [Url]),

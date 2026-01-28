@@ -26,5 +26,5 @@ start(_Type, _Args) ->
 
 stop(_State) ->
 	?LOG_INFO("Stop product_scraper"),
-	cowboy:stop_listener(http_listener),
+	_ = cowboy:stop_listener(http_listener),
 	ok.

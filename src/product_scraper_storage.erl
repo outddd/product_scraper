@@ -1,6 +1,8 @@
 -module(product_scraper_storage).
 -behaviour(gen_server).
 
+-dialyzer({nowarn_function, [select_products/3, build_match_spec/3]}).
+
 %% API.
 -export([start_link/0]).
 
@@ -36,7 +38,7 @@ init([]) ->
   self() ! init_mnesia,
   {ok, #state{}}.
 
-handle_call({get_products, _FromTime, _ToTime}, _From, #state{ready = false} = State) ->
+handle_call({get_products, _FromTime, _ToTime, _Id}, _From, #state{ready = false} = State) ->
   {reply, {error, not_ready}, State};
 
 handle_call({get_products, FromTime, ToTime, Id}, _From, #state{ready = true} = State) ->
@@ -48,15 +50,18 @@ handle_call(Request, _From, State) ->
   ?LOG_WARNING("Unknown request ~p", [Request]),
   {reply, ignored, State}.
 
-handle_cast({store, _Products}, #{ready := false} = State) ->
+handle_cast({store, _Products}, #state{ready = false} = State) ->
   ?LOG_WARNING("Storage not ready, dropping product"),
   {noreply, State};
 
 handle_cast({store, Products}, #state{ready = true} = State) ->
-  lists:foreach(fun(P) ->
-    mnesia:dirty_write(P),
-    ?LOG_DEBUG("Store ~p", [P])
-                end, Products),
+  % we use dirty functions because there is single process write and read db
+  lists:foreach(
+    fun(P) ->
+      mnesia:dirty_write(P),
+      ?LOG_DEBUG("Store ~p", [P])
+    end, Products
+  ),
   ?LOG_DEBUG("Stored ~B products", [length(Products)]),
   {noreply, State};
 
@@ -78,9 +83,9 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal
 
 init_mnesia() ->
-  mnesia:create_schema([node()]),
+  ok = mnesia:create_schema([node()]),
   ok = mnesia:start(),
-  mnesia:create_table(product, [
+  _ = mnesia:create_table(product, [
     {attributes, record_info(fields, product)},
     {disc_copies, [node()]},
     {type, bag}
@@ -88,6 +93,7 @@ init_mnesia() ->
   ok = mnesia:wait_for_tables([product], infinity).
 
 select_products(From, To, Id) ->
+  % select records between from and to timestamps with Id if it isn't undefined
   MatchSpec = build_match_spec(From, To, Id),
   mnesia:dirty_select(product, MatchSpec).
 
