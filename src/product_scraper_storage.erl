@@ -83,14 +83,21 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal
 
 init_mnesia() ->
-  _ = mnesia:create_schema([node()]),
+  % restart mnesia manually for automatic schema creation
+  _ = mnesia:stop(),
+  SchemaCreation = mnesia:create_schema([node()]),
+  ?LOG_DEBUG("Schema created ~p", [SchemaCreation]),
   ok = mnesia:start(),
-  _ = mnesia:create_table(product, [
+  ?LOG_DEBUG("Mnesia started"),
+  TableCreation = mnesia:create_table(product, [
     {attributes, record_info(fields, product)},
     {disc_copies, [node()]},
     {type, bag}
   ]),
-  ok = mnesia:wait_for_tables([product], infinity).
+  ?LOG_DEBUG("Table created ~p", [TableCreation]),
+  ok = mnesia:wait_for_tables([product], infinity),
+  ?LOG_INFO("Storage initialized"),
+  ok.
 
 select_products(From, To, Id) ->
   % select records between from and to timestamps with Id if it isn't undefined
