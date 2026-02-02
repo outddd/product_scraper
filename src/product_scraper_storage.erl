@@ -83,7 +83,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal
 
 init_mnesia() ->
-  ok = mnesia:create_schema([node()]),
+  _ = mnesia:create_schema([node()]),
   ok = mnesia:start(),
   _ = mnesia:create_table(product, [
     {attributes, record_info(fields, product)},
