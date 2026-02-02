@@ -58,14 +58,14 @@ group_by_time_groups_by_scraped_at_test() ->
     #product{id = 2, price = 20.0, scraped_at = 1000},
     #product{id = 3, price = 30.0, scraped_at = 2000}
   ],
-  Grouped = product_scraper_handler:group_by_time(Products),
-  ?assertEqual(2, maps:size(Grouped)).
+  {Grouped} = product_scraper_handler:group_by_time(Products),
+  ?assertEqual(2, length(Grouped)).
 
 group_by_time_same_time_in_same_group_test() ->
   Products = [
     #product{id = 1, price = 10.0, scraped_at = 1000},
     #product{id = 2, price = 20.0, scraped_at = 1000}
   ],
-  Grouped = product_scraper_handler:group_by_time(Products),
+  {Grouped} = product_scraper_handler:group_by_time(Products),
   TimeKey = product_scraper_handler:format_time(1000),
-  ?assertEqual(2, length(maps:get(TimeKey, Grouped))).
+  ?assertEqual(2, length(proplists:get_value(TimeKey, Grouped))).
